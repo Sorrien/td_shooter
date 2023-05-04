@@ -16,7 +16,7 @@ use bevy_mod_sysfail::macros::*;
 use regex::Regex;
 use std::sync::LazyLock;
 
-/// Handles instantiation of shaders. The shaders can be found in the [`shaders`](https://github.com/janhohenheim/foxtrot/tree/main/assets/shaders) directory.
+/// Handles instantiation of shaders. The shaders can be found in the [`shaders`](https://github.com/janhohenheim/td_shooter/tree/main/assets/shaders) directory.
 /// Shaders are stored in [`Material`]s which can be used on objects by attaching a `Handle<Material>` to an entity.
 /// The handles can be stored and retrieved in the [`Materials`] resource.
 pub(crate) fn shader_plugin(app: &mut App) {
@@ -57,7 +57,7 @@ fn setup_shader(
 
 #[derive(AsBindGroup, Debug, Clone, TypeUuid)]
 #[uuid = "bd5c76fd-6fdd-4de4-9744-4e8beea8daaf"]
-/// Material for [`glowy.wgsl`](https://github.com/janhohenheim/foxtrot/blob/main/assets/shaders/glowy.wgsl).
+/// Material for [`glowy.wgsl`](https://github.com/janhohenheim/td_shooter/blob/main/assets/shaders/glowy.wgsl).
 pub(crate) struct GlowyMaterial {
     #[texture(0)]
     #[sampler(1)]
@@ -72,7 +72,7 @@ impl Material for GlowyMaterial {
 
 #[derive(AsBindGroup, Debug, Clone, TypeUuid)]
 #[uuid = "8ca95d76-91d6-44c0-a67b-8a4d22cd59b1"]
-/// Material for [`skydome.wgsl`](https://github.com/janhohenheim/foxtrot/blob/main/assets/shaders/skydome.wgsl).
+/// Material for [`skydome.wgsl`](https://github.com/janhohenheim/td_shooter/blob/main/assets/shaders/skydome.wgsl).
 pub(crate) struct SkydomeMaterial {
     #[texture(0)]
     #[sampler(1)]
@@ -106,7 +106,7 @@ pub(crate) struct Repeats {
 
 #[derive(AsBindGroup, Debug, Clone, TypeUuid)]
 #[uuid = "82d336c5-fd6c-41a3-bdd4-267cd4c9be22"]
-/// Material for [`repeated.wgsl`](https://github.com/janhohenheim/foxtrot/blob/main/assets/shaders/repeated.wgsl).
+/// Material for [`repeated.wgsl`](https://github.com/janhohenheim/td_shooter/blob/main/assets/shaders/repeated.wgsl).
 pub(crate) struct RepeatedMaterial {
     #[texture(0)]
     #[sampler(1)]

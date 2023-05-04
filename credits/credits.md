@@ -11,9 +11,9 @@
 - 3D Retro Medieval/Fantasy Building Kit: CC0 1.0; https://chilly-durango.itch.io/medieval-building-parts
 - Medieval Wall 01: CC0 1.0; https://polyhaven.com/a/medieval_wall_01
 - Roof 09: CC0 1.0; https://polyhaven.com/a/roof_09
-- House model: CC0 1.0; made by Jan Hohenheim https://github.com/janhohenheim/foxtrot
+- House model: CC0 1.0; made by Jan Hohenheim https://github.com/janhohenheim/td_shooter
 
 ## Template
 
-- Foxtrot template: MIT or Apache 2.0; made by Jan Hohenheim https://github.com/janhohenheim/foxtrot
+- td_shooter template: MIT or Apache 2.0; made by Jan Hohenheim https://github.com/janhohenheim/td_shooter
 - Adapted from bevy_game_template: CC0 1.0; https://github.com/NiklasEi/bevy_game_template 

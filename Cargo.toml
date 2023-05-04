@@ -1,7 +1,7 @@
 [package]
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 edition = "2021"
-name = "foxtrot"
+name = "td_shooter"
 version = "0.2.0"
 license = "MIT OR  Apache-2.0"
 exclude = [
@@ -14,10 +14,10 @@ exclude = [
     "build.rs",
 ]
 description = "The all-in-one Bevy 3D game template."
-repository = "https://github.com/janhohenheim/foxtrot"
+repository = "https://github.com/janhohenheim/td_shooter"
 keywords = ["gamedev", "bevy", "template", "game"]
 categories = ["game-development"]
-homepage = "https://janhohenheim.github.io/foxtrot/"
+homepage = "https://janhohenheim.github.io/td_shooter/"
 
 [features]
 default = ["native-dev"]

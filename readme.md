@@ -1,5 +1,5 @@
-# Foxtrot
-[![Live Demo](https://img.shields.io/badge/live%20demo-v0.2.0-blue)](https://janhohenheim.github.io/foxtrot/)
+# td_shooter
+[![Live Demo](https://img.shields.io/badge/live%20demo-v0.2.0-blue)](https://janhohenheim.github.io/td_shooter/)
 
 The all-in-one Bevy 3D game template.  
 
@@ -29,8 +29,8 @@ https://user-images.githubusercontent.com/9047632/226387411-70f662de-0681-47ff-b
 
 ## Usage
 
-Simply use the [template button on GitHub](https://github.com/janhohenheim/foxtrot/generate) to create a new repository from this template.
-Then, replace all instances of the word `foxtrot` with the name of your game. Change the game version as well as the author information in the following files:
+Simply use the [template button on GitHub](https://github.com/janhohenheim/td_shooter/generate) to create a new repository from this template.
+Then, replace all instances of the word `td_shooter` with the name of your game. Change the game version as well as the author information in the following files:
 - `Cargo.toml`
 - `build/windows/installer/Package.wxs`
 - `build/macos/src/Game.app/Contents/Resources/Info.plist`

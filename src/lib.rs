@@ -16,6 +16,8 @@
 //! Feel free to [file an issue](https://github.com/janhohenheim/td_shooter/issues/new) if you need help!
 //! The docs are organized such that you can click through the plugins to explore the systems at play.
 pub(crate) mod bevy_config;
+#[cfg(feature = "native")]
+pub(crate) mod combat;
 #[cfg(feature = "dev")]
 pub(crate) mod dev;
 pub(crate) mod file_system_interaction;
@@ -23,7 +25,6 @@ pub(crate) mod ingame_menu;
 pub(crate) mod level_instantiation;
 pub(crate) mod menu;
 pub(crate) mod movement;
-#[cfg(feature = "native")]
 pub(crate) mod particles;
 pub(crate) mod player_control;
 pub(crate) mod shader;
@@ -38,10 +39,12 @@ use crate::ingame_menu::ingame_menu_plugin;
 use crate::level_instantiation::level_instantiation_plugin;
 use crate::menu::menu_plugin;
 use crate::movement::movement_plugin;
+
 #[cfg(feature = "native")]
 use crate::particles::particle_plugin;
 use crate::player_control::player_control_plugin;
 use crate::shader::shader_plugin;
+use crate::combat::shoot::shooting_plugin;
 use crate::world_interaction::world_interaction_plugin;
 use bevy::prelude::*;
 use seldom_fn_plugin::FnPluginExt;
@@ -95,7 +98,8 @@ impl Plugin for GamePlugin {
             .fn_plugin(level_instantiation_plugin)
             .fn_plugin(file_system_interaction_plugin)
             .fn_plugin(shader_plugin)
-            .fn_plugin(ingame_menu_plugin);
+            .fn_plugin(ingame_menu_plugin)
+            .fn_plugin(shooting_plugin);
         #[cfg(feature = "dev")]
         app.fn_plugin(dev_plugin);
         #[cfg(feature = "native")]

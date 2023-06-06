@@ -48,6 +48,7 @@ pub(crate) enum PlayerAction {
     Move,
     Sprint,
     Jump,
+    Shoot,
     Interact,
     SpeedUpDialog,
     NumberedChoice1,
@@ -114,7 +115,10 @@ pub(crate) fn create_player_action_input_manager_bundle() -> InputManagerBundle<
             (QwertyScanCode::Key9, PlayerAction::NumberedChoice9),
             (QwertyScanCode::Key0, PlayerAction::NumberedChoice0),
         ])
+        .insert(MouseButton::Left, PlayerAction::Shoot)
+        .insert(GamepadButtonType::RightTrigger2, PlayerAction::Shoot)
         .insert(VirtualDPad::wasd(), PlayerAction::Move)
+        .insert(DualAxis::left_stick(), PlayerAction::Move)
         .build(),
         ..default()
     }
@@ -124,6 +128,7 @@ pub(crate) fn create_camera_action_input_manager_bundle() -> InputManagerBundle<
     InputManagerBundle {
         input_map: InputMap::default()
             .insert(DualAxis::mouse_motion(), CameraAction::Orbit)
+            .insert(DualAxis::right_stick(), CameraAction::Orbit)
             .insert(SingleAxis::mouse_wheel_y(), CameraAction::Zoom)
             .build(),
         ..default()
@@ -146,6 +151,7 @@ pub(crate) fn remove_actions_when_frozen(
         player_actions.release(PlayerAction::Jump);
         player_actions.release(PlayerAction::Interact);
         player_actions.release(PlayerAction::Sprint);
+        player_actions.release(PlayerAction::Shoot);
     }
     for mut camera_actions in camera_actions_query.iter_mut() {
         camera_actions

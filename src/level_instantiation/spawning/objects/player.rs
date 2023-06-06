@@ -1,3 +1,4 @@
+use crate::combat::shoot::Shooting;
 use crate::file_system_interaction::asset_loading::{AnimationAssets, SceneAssets};
 use crate::level_instantiation::spawning::objects::GameCollisionGroup;
 use crate::level_instantiation::spawning::GameObject;
@@ -40,6 +41,7 @@ pub(crate) fn spawn(
             ),
             create_player_action_input_manager_bundle(),
             create_ui_action_input_manager_bundle(),
+            Shooting::default(),
             GameObject::Player,
         ))
         .id();

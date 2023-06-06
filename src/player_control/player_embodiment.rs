@@ -1,3 +1,5 @@
+use crate::combat::shoot::Shooting;
+//use crate::combat::Shooting;
 use crate::file_system_interaction::audio::AudioHandles;
 use crate::file_system_interaction::config::GameConfig;
 use crate::movement::general_movement::{GeneralMovementSystemSet, Grounded, Jumping, Walking};
@@ -29,6 +31,7 @@ pub(crate) fn player_embodiment_plugin(app: &mut App) {
                 rotate_to_speaker.run_if(resource_exists::<CurrentDialog>()),
                 control_walking_sound,
                 handle_camera_kind,
+                handle_shoot,
             )
                 .chain()
                 .after(CameraUpdateSystemSet)
@@ -40,6 +43,16 @@ pub(crate) fn player_embodiment_plugin(app: &mut App) {
 #[derive(Debug, Clone, Eq, PartialEq, Component, Reflect, Serialize, Deserialize, Default)]
 #[reflect(Component, Serialize, Deserialize)]
 pub(crate) struct Player;
+
+fn handle_shoot(
+    mut player_query: Query<(&ActionState<PlayerAction>, &mut Shooting), With<Player>>,
+) {
+    #[cfg(feature = "tracing")]
+    let _span = info_span!("handle_shoot").entered();
+    for (actions, mut shoot) in &mut player_query {
+        shoot.requested |= actions.pressed(PlayerAction::Shoot);
+    }
+}
 
 fn handle_jump(mut player_query: Query<(&ActionState<PlayerAction>, &mut Jumping), With<Player>>) {
     #[cfg(feature = "tracing")]

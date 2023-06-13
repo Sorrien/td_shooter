@@ -1,11 +1,13 @@
 use crate::level_instantiation::spawning::objects::util::MeshAssetsExt;
 use crate::level_instantiation::spawning::objects::GameCollisionGroup;
+use crate::particles::{ParticleEffects, TimedParticle};
 use crate::player_control::{camera::IngameCamera, player_embodiment::Player};
 use crate::shader::Materials;
 use crate::GameState;
 use anyhow::{Context, Result};
 use bevy::ecs::query;
 use bevy::{prelude::*, reflect::TypeUuid};
+use bevy_hanabi::{ParticleEffect, ParticleEffectBundle};
 use bevy_mod_sysfail::sysfail;
 use bevy_rapier3d::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -270,6 +272,7 @@ fn handle_tracing_projectile_movement(
     time: Res<Time>,
     query_name: Query<&Name>,
     mut commands: Commands,
+    particle_effects: Res<ParticleEffects>,
 ) {
     //error!("starting projectile system");
     for (projectile_entity, mut projectile, mut transform) in tracing_projectiles.iter_mut() {
@@ -287,17 +290,39 @@ fn handle_tracing_projectile_movement(
 
             let max_toi = ray_end.length();
             let ray_direction = ray_end - ray_start;
-/*             error!(
+            /*             error!(
                 "entity: {:?} ray dir: {:?} max_toi: {:?}",
                 projectile_entity, ray_direction, max_toi
             ); */
             //let hit = rapier_context.cast_ray(ray_start, ray_direction, max_toi, true, filter);
 
-            let hit = rapier_context.cast_ray_and_get_normal(ray_start, ray_direction, max_toi, true, filter);
+            let hit = rapier_context.cast_ray_and_get_normal(
+                ray_start,
+                ray_direction,
+                max_toi,
+                true,
+                filter,
+            );
             if let Some((entity, ray_intersection)) = hit {
                 //let entity_name = query_name.get(entity).unwrap();
                 //error!("hit entity: {:?} {:?}", entity, entity_name);
                 transform.translation = ray_intersection.point;
+                if let Some(firework) = particle_effects.firework.clone() {
+                    commands.spawn((
+                        Name::new("Firework particle"),
+                        ParticleEffectBundle {
+                            effect: ParticleEffect::new(firework),
+                            transform: transform.clone(),
+                            ..default()
+                        },
+                        TimedParticle {
+                            destroy_on_completion: true,
+                            length: 3.0,
+                            time_played: 0.0
+                        }
+                    ));
+                };
+
                 projectile.velocity = Vec3::ZERO;
                 commands.entity(projectile_entity).despawn();
             } else {

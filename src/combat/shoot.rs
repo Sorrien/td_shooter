@@ -4,6 +4,7 @@ use crate::player_control::{camera::IngameCamera, player_embodiment::Player};
 use crate::shader::Materials;
 use crate::GameState;
 use anyhow::{Context, Result};
+use bevy::ecs::query;
 use bevy::{prelude::*, reflect::TypeUuid};
 use bevy_mod_sysfail::sysfail;
 use bevy_rapier3d::prelude::*;
@@ -24,21 +25,23 @@ impl Default for Shooting {
 
 #[derive(Debug, Clone, PartialEq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component, Serialize, Deserialize)]
-pub(crate) struct Projectile {}
+pub(crate) struct PhysicsProjectile {}
 
-impl Default for Projectile {
+impl Default for PhysicsProjectile {
     fn default() -> Self {
         Self {}
     }
 }
 
 pub(crate) fn shooting_plugin(app: &mut App) {
-    app.register_type::<Shooting>().add_systems(
-        (apply_shooting, apply_projectile_impact)
-            .chain()
-            .in_set(ShootingSystemSet)
-            .in_set(OnUpdate(GameState::Playing)),
-    );
+    app.register_type::<Shooting>()
+        .add_systems(
+            (apply_shooting, apply_projectile_impact)
+                .chain()
+                .in_set(ShootingSystemSet)
+                .in_set(OnUpdate(GameState::Playing)),
+        )
+        .add_system(handle_tracing_projectile_movement);
 }
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
@@ -54,39 +57,59 @@ fn apply_shooting(
 ) -> Result<()> {
     #[cfg(feature = "tracing")]
     let _span = info_span!("handle_horizontal_movement").entered();
-    let Some((camera, camera_transform)) = camera_query.iter().next() else {
+    let Some((_camera, camera_transform)) = camera_query.iter().next() else {
         return Ok(());
     };
 
-    for (mut shooting, player_transform) in &mut player_query {
+    for (mut shooting, _player_transform) in &mut player_query {
         if shooting.requested {
             let forward = camera_transform.forward();
-            const SPAWN_FORWARD_ADJUST: f32 = 1.0;
-            let projectile_starting_vel = 50.0;
+            const SPAWN_FORWARD_ADJUST: f32 = 2.0;
+            let projectile_starting_vel = 10.0;
 
             let mesh_handle = get_or_add_mesh_handle(&mut meshes);
 
             let projectile_transform = camera_transform
                 .with_translation((forward * SPAWN_FORWARD_ADJUST) + camera_transform.translation);
-            let projectile = commands
-                .spawn((
-                    MaterialMeshBundle {
-                        mesh: mesh_handle,
-                        material: materials.glowy.clone(),
-                        transform: projectile_transform,
-                        ..default()
-                    },
-                    Name::new("Projectile"),
-                    ProjectileBundle::ball(0.1, forward * projectile_starting_vel),
-                    ActiveEvents::COLLISION_EVENTS,
-                    ActiveCollisionTypes::DYNAMIC_DYNAMIC,
-                    CollisionGroups::new(
-                        GameCollisionGroup::OTHER.into(),
-                        GameCollisionGroup::OTHER.into(),
-                    ), 
-                    Ccd::enabled(),
-                ))
-                .id(); 
+
+            let is_physics_projectile = false;
+
+            let _projectile = if is_physics_projectile {
+                commands
+                    .spawn((
+                        MaterialMeshBundle {
+                            mesh: mesh_handle,
+                            material: materials.glowy.clone(),
+                            transform: projectile_transform,
+                            ..default()
+                        },
+                        Name::new("Projectile"),
+                        PhysicsProjectileBundle::ball(0.1, forward * projectile_starting_vel),
+                        ActiveEvents::COLLISION_EVENTS,
+                        ActiveCollisionTypes::DYNAMIC_DYNAMIC,
+                        CollisionGroups::new(
+                            GameCollisionGroup::OTHER.into(),
+                            GameCollisionGroup::OTHER.into(),
+                        ),
+                        Ccd::enabled(),
+                    ))
+                    .id()
+            } else {
+                commands
+                    .spawn((
+                        MaterialMeshBundle {
+                            mesh: mesh_handle,
+                            material: materials.glowy.clone(),
+                            transform: projectile_transform,
+                            ..default()
+                        },
+                        Name::new("Projectile"),
+                        TracingProjectile {
+                            velocity: forward * projectile_starting_vel,
+                        },
+                    ))
+                    .id()
+            };
 
             shooting.requested = false;
         }
@@ -95,14 +118,15 @@ fn apply_shooting(
 }
 
 fn apply_projectile_impact(
-/*     mut collision_events: EventReader<CollisionEvent>,
-    projectile_query: Query<Entity, With<Projectile>>,
-    parent_query: Query<&Parent>, */
+    mut collision_events: EventReader<CollisionEvent>,
+    projectile_query: Query<Entity, With<PhysicsProjectile>>,
+    parent_query: Query<&Parent>,
+    mut commands: Commands,
 ) {
-/*     for event in collision_events.iter() {
+    for event in collision_events.iter() {
         let (entity_a, entity_b, ongoing) = unpack_collision_event(event);
 
-        let (_player_entity, target_entity) = match determine_projectile_and_target(
+        let (projectile_entity, _target_entity) = match determine_projectile_and_target(
             &projectile_query,
             &parent_query,
             entity_a,
@@ -114,7 +138,8 @@ fn apply_projectile_impact(
         if ongoing {
         } else {
         }
-    } */
+        commands.entity(projectile_entity).despawn();
+    }
 }
 
 fn unpack_collision_event(event: &CollisionEvent) -> (Entity, Entity, bool) {
@@ -125,19 +150,19 @@ fn unpack_collision_event(event: &CollisionEvent) -> (Entity, Entity, bool) {
 }
 
 fn determine_projectile_and_target(
-    player_query: &Query<Entity, With<Projectile>>,
+    projectile_query: &Query<Entity, With<PhysicsProjectile>>,
     parent_query: &Query<&Parent>,
     entity_a: Entity,
     entity_b: Entity,
 ) -> Option<(Entity, Entity)> {
-    if player_query.get(entity_a).is_ok() {
+    if projectile_query.get(entity_a).is_ok() {
         let projectile_entity = entity_a;
         let target_entity = parent_query
             .get(entity_b)
             .map(|parent| parent.get())
             .unwrap_or(entity_b);
         Some((projectile_entity, target_entity))
-    } else if player_query.get(entity_b).is_ok() {
+    } else if projectile_query.get(entity_b).is_ok() {
         let projectile_entity = entity_b;
         let target_entity = parent_query
             .get(entity_a)
@@ -154,15 +179,15 @@ fn get_or_add_mesh_handle(mesh_assets: &mut Assets<Mesh>) -> Handle<Mesh> {
         HandleUntyped::weak_from_u64(Mesh::TYPE_UUID, 0x1f40128bad02a9b);
     mesh_assets.get_or_add(MESH_HANDLE, || {
         Mesh::from(shape::UVSphere {
-            radius: 0.1,
+            radius: 0.01,
             ..default()
         })
     })
 }
 
 #[derive(Debug, Clone, Bundle)]
-pub(crate) struct ProjectileBundle {
-    pub(crate) projectile: Projectile,
+pub(crate) struct PhysicsProjectileBundle {
+    pub(crate) projectile: PhysicsProjectile,
     pub(crate) gravity_scale: GravityScale,
     pub(crate) mass: ColliderMassProperties,
     pub(crate) read_mass: ReadMassProperties,
@@ -175,10 +200,10 @@ pub(crate) struct ProjectileBundle {
     pub(crate) dominance: Dominance,
 }
 
-impl Default for ProjectileBundle {
+impl Default for PhysicsProjectileBundle {
     fn default() -> Self {
         Self {
-            projectile: Projectile {},
+            projectile: PhysicsProjectile {},
             read_mass: default(),
             gravity_scale: GravityScale(1.0),
             force: default(),
@@ -196,7 +221,7 @@ impl Default for ProjectileBundle {
     }
 }
 
-impl ProjectileBundle {
+impl PhysicsProjectileBundle {
     pub(crate) fn capsule(height: f32, radius: f32, lin_vel: Vec3) -> Self {
         Self {
             collider: Collider::capsule_y(height / 2., radius),
@@ -216,6 +241,68 @@ impl ProjectileBundle {
                 angvel: default(),
             },
             ..default()
+        }
+    }
+}
+
+#[derive(Debug, Clone, Bundle)]
+pub(crate) struct TracingProjectileBundle {
+    pub(crate) projectile: TracingProjectile,
+}
+
+#[derive(Debug, Clone, PartialEq, Component, Reflect, Serialize, Deserialize)]
+#[reflect(Component, Serialize, Deserialize)]
+pub(crate) struct TracingProjectile {
+    velocity: Vec3,
+}
+
+impl Default for TracingProjectile {
+    fn default() -> Self {
+        Self {
+            velocity: Vec3::default(),
+        }
+    }
+}
+
+fn handle_tracing_projectile_movement(
+    mut tracing_projectiles: Query<(Entity, &mut TracingProjectile, &mut Transform)>,
+    rapier_context: Res<RapierContext>,
+    time: Res<Time>,
+    query_name: Query<&Name>,
+    mut commands: Commands,
+) {
+    //error!("starting projectile system");
+    for (projectile_entity, mut projectile, mut transform) in tracing_projectiles.iter_mut() {
+        //error!("processing projectile {:?}", projectile_entity);
+        if projectile.velocity.cmpgt(Vec3::ZERO).any() {
+            //error!("projectile {:?} has velocity greater than 0", projectile_entity);
+            let dt = time.delta_seconds();
+            let ray_start = transform.translation;
+            let travel_distance = projectile.velocity * dt;
+            let gravity = Vec3::Y * -1.0; //ideally we'd pull the gravity from rapier
+            let ray_end = ray_start + travel_distance + (gravity * dt); //things are dropping too quickly at the moment.
+
+            let mut filter = QueryFilter::new();
+            filter.flags |= QueryFilterFlags::EXCLUDE_SENSORS;
+
+            let max_toi = ray_end.length();
+            let ray_direction = ray_end - ray_start;
+/*             error!(
+                "entity: {:?} ray dir: {:?} max_toi: {:?}",
+                projectile_entity, ray_direction, max_toi
+            ); */
+            //let hit = rapier_context.cast_ray(ray_start, ray_direction, max_toi, true, filter);
+
+            let hit = rapier_context.cast_ray_and_get_normal(ray_start, ray_direction, max_toi, true, filter);
+            if let Some((entity, ray_intersection)) = hit {
+                //let entity_name = query_name.get(entity).unwrap();
+                //error!("hit entity: {:?} {:?}", entity, entity_name);
+                transform.translation = ray_intersection.point;
+                projectile.velocity = Vec3::ZERO;
+                commands.entity(projectile_entity).despawn();
+            } else {
+                transform.translation = ray_end;
+            }
         }
     }
 }

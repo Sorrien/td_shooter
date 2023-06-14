@@ -41,7 +41,10 @@ pub(crate) fn spawn(
             ),
             create_player_action_input_manager_bundle(),
             create_ui_action_input_manager_bundle(),
-            Shooting::default(),
+            Shooting {
+                shoot_delay_length: 0.1,
+                ..default()
+            },
             GameObject::Player,
         ))
         .id();

@@ -1,3 +1,5 @@
+use std::f32::consts::E;
+
 use crate::level_instantiation::spawning::objects::util::MeshAssetsExt;
 use crate::level_instantiation::spawning::objects::GameCollisionGroup;
 use crate::particles::{ParticleEffects, TimedParticle};
@@ -17,11 +19,14 @@ use serde::{Deserialize, Serialize};
 pub(crate) struct Shooting {
     /// Was shoot requested?
     pub(crate) requested: bool,
+    pub(crate) shoot_delay_enabled: bool,
+    pub(crate) shoot_delay_length: f32,
+    pub(crate) shoot_delay_time: f32
 }
 
 impl Default for Shooting {
     fn default() -> Self {
-        Self { requested: false }
+        Self { requested: false, shoot_delay_enabled: false, shoot_delay_length: 0.0, shoot_delay_time: 0.0 }
     }
 }
 
@@ -56,15 +61,28 @@ fn apply_shooting(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     materials: Res<Materials>,
+    time: Res<Time>,
 ) -> Result<()> {
     #[cfg(feature = "tracing")]
     let _span = info_span!("handle_horizontal_movement").entered();
     let Some((_camera, camera_transform)) = camera_query.iter().next() else {
         return Ok(());
     };
+    let dt = time.delta_seconds();
 
     for (mut shooting, _player_transform) in &mut player_query {
-        if shooting.requested {
+
+        if shooting.shoot_delay_enabled {
+            if shooting.shoot_delay_time >= shooting.shoot_delay_length {
+                shooting.shoot_delay_enabled = false;
+                shooting.shoot_delay_time = 0.0;
+            }
+            else {
+                shooting.shoot_delay_time += dt;
+            }
+        }
+
+        if shooting.requested && !shooting.shoot_delay_enabled {
             let forward = camera_transform.forward();
             const SPAWN_FORWARD_ADJUST: f32 = 2.0;
             let projectile_starting_vel = 10.0;
@@ -113,6 +131,10 @@ fn apply_shooting(
                     .id()
             };
 
+            shooting.requested = false;
+            shooting.shoot_delay_enabled = true;
+        }
+        else if shooting.requested {
             shooting.requested = false;
         }
     }

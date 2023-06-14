@@ -8,6 +8,7 @@ use bevy::winit::WinitWindows;
 use bevy_mod_sysfail::macros::*;
 use std::io::Cursor;
 use winit::window::Icon;
+//use bevy_fps_counter::{FpsCounter, FpsCounterPlugin};
 
 /// Overrides the default Bevy plugins and configures things like the screen settings.
 pub(crate) fn bevy_config_plugin(app: &mut App) {

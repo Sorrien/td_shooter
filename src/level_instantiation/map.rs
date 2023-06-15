@@ -33,7 +33,7 @@ fn setup(
     });
 
     loader.send(WorldLoadRequest {
-        filename: "old_town".to_string(),
+        filename: "old_town_2".to_string(),
     });
 
     // Make sure the player is spawned after the level

@@ -1,5 +1,3 @@
-use std::f32::consts::E;
-
 use crate::level_instantiation::spawning::objects::util::MeshAssetsExt;
 use crate::level_instantiation::spawning::objects::GameCollisionGroup;
 use crate::particles::{ParticleEffects, TimedParticle};
@@ -13,6 +11,8 @@ use bevy_hanabi::{ParticleEffect, ParticleEffectBundle};
 use bevy_mod_sysfail::sysfail;
 use bevy_rapier3d::prelude::*;
 use serde::{Deserialize, Serialize};
+
+use super::health::Health;
 
 #[derive(Debug, Clone, PartialEq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component, Serialize, Deserialize)]
@@ -293,6 +293,7 @@ fn handle_tracing_projectile_movement(
     rapier_context: Res<RapierContext>,
     time: Res<Time>,
     query_name: Query<&Name>,
+    mut query_health: Query<&mut Health>,
     mut commands: Commands,
     particle_effects: Res<ParticleEffects>,
 ) {
@@ -344,6 +345,10 @@ fn handle_tracing_projectile_movement(
                         }
                     ));
                 };
+
+                if let Ok(mut health) = query_health.get_mut(entity) {
+                    health.hit_points = 0.0; //all projectiles are instant kill for now
+                }
 
                 projectile.velocity = Vec3::ZERO;
                 commands.entity(projectile_entity).despawn();

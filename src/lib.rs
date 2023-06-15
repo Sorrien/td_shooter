@@ -45,6 +45,7 @@ use crate::particles::particle_plugin;
 use crate::player_control::player_control_plugin;
 use crate::shader::shader_plugin;
 use crate::combat::shoot::shooting_plugin;
+use crate::combat::health::health_plugin;
 use crate::world_interaction::world_interaction_plugin;
 use bevy::prelude::*;
 use seldom_fn_plugin::FnPluginExt;
@@ -99,7 +100,8 @@ impl Plugin for GamePlugin {
             .fn_plugin(file_system_interaction_plugin)
             .fn_plugin(shader_plugin)
             .fn_plugin(ingame_menu_plugin)
-            .fn_plugin(shooting_plugin);
+            .fn_plugin(shooting_plugin)
+            .fn_plugin(health_plugin);
         #[cfg(feature = "dev")]
         app.fn_plugin(dev_plugin);
         #[cfg(feature = "native")]

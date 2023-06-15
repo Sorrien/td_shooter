@@ -2,6 +2,7 @@ use bevy_rapier3d::prelude::*;
 use bitflags::bitflags;
 
 pub(crate) mod camera;
+pub(crate) mod enemy;
 pub(crate) mod level;
 pub(crate) mod npc;
 pub(crate) mod orb;

@@ -33,6 +33,7 @@ pub(crate) fn spawning_plugin(app: &mut App) {
             (GameObject::Orb, objects::orb::spawn),
             (GameObject::Camera, objects::camera::spawn),
             (GameObject::Skydome, objects::skydome::spawn),
+            (GameObject::Enemy, objects::enemy::spawn),
         ))
         .add_systems((despawn, link_animations).in_set(OnUpdate(GameState::Playing)))
         .add_systems(
@@ -72,4 +73,5 @@ pub(crate) enum GameObject {
     Orb,
     Camera,
     Skydome,
+    Enemy
 }

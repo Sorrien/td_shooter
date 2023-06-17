@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 use spew::prelude::*;
 use strum_macros::EnumIter;
 
+use self::objects::enemy::spawn_enemies_on_endless_spawner;
+
 mod animation_link;
 mod despawn;
 pub(crate) mod objects;
@@ -34,10 +36,11 @@ pub(crate) fn spawning_plugin(app: &mut App) {
             (GameObject::Camera, objects::camera::spawn),
             (GameObject::Skydome, objects::skydome::spawn),
             (GameObject::Enemy, objects::enemy::spawn),
+            (GameObject::EnemySpawner, objects::enemy_spawner::spawn),
         ))
         .add_systems((despawn, link_animations).in_set(OnUpdate(GameState::Playing)))
         .add_systems(
-            (set_hidden, despawn_removed, set_color, set_shadows)
+            (set_hidden, despawn_removed, set_color, set_shadows, spawn_enemies_on_endless_spawner)
                 .in_set(OnUpdate(GameState::Playing)),
         );
 }
@@ -73,5 +76,6 @@ pub(crate) enum GameObject {
     Orb,
     Camera,
     Skydome,
-    Enemy
+    Enemy,
+    EnemySpawner,
 }

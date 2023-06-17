@@ -12,6 +12,7 @@ pub(crate) mod primitives;
 pub(crate) mod skydome;
 pub(crate) mod sunlight;
 pub(crate) mod util;
+pub(crate) mod enemy_spawner;
 
 bitflags! {
     pub(crate) struct GameCollisionGroup: u32 {

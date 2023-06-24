@@ -1,17 +1,15 @@
 use crate::combat::shoot::Shooting;
-//use crate::combat::Shooting;
-use crate::file_system_interaction::audio::AudioHandles;
 use crate::file_system_interaction::config::GameConfig;
 use crate::movement::general_movement::{GeneralMovementSystemSet, Grounded, Jumping, Walking};
 use crate::player_control::actions::{DualAxisDataExt, PlayerAction};
 use crate::player_control::camera::{CameraUpdateSystemSet, IngameCamera, IngameCameraKind};
+use crate::spatial_audio::LoopAudioEmitter;
 use crate::util::smoothness_to_lerp_factor;
 use crate::util::trait_extension::{F32Ext, TransformExt, Vec3Ext};
 use crate::world_interaction::dialog::CurrentDialog;
 use crate::GameState;
 use anyhow::{Context, Result};
 use bevy::prelude::*;
-use bevy_kira_audio::AudioInstance;
 use bevy_mod_sysfail::macros::*;
 use bevy_rapier3d::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
@@ -188,16 +186,11 @@ fn rotate_to_speaker(
 #[sysfail(log(level = "error"))]
 fn control_walking_sound(
     time: Res<Time>,
-    character_query: Query<(&Velocity, &Transform, &Grounded), With<Player>>,
-    audio: Res<AudioHandles>,
-    mut audio_instances: ResMut<Assets<AudioInstance>>,
+    mut character_query: Query<(&Velocity, &Transform, &Grounded, &mut LoopAudioEmitter)>,
 ) -> Result<()> {
     #[cfg(feature = "tracing")]
     let _span = info_span!("control_walking_sound").entered();
-    for (velocity, transform, grounded) in character_query.iter() {
-        let audio_instance = audio_instances
-            .get_mut(&audio.walking)
-            .context("Failed to get audio instance from handle")?;
+    for (velocity, transform, grounded, mut emitter) in character_query.iter_mut() {
         let has_horizontal_movement = !velocity
             .linvel
             .split(transform.up())
@@ -205,9 +198,13 @@ fn control_walking_sound(
             .is_approx_zero();
         let is_moving_on_ground = has_horizontal_movement && grounded.0;
         if is_moving_on_ground && !time.is_paused() {
-            audio_instance.resume(default());
+            if emitter.playback_state.is_some() {
+                emitter.resume(default());
+            } else {
+                emitter.play(default());
+            }
         } else {
-            audio_instance.pause(default());
+            emitter.pause(default());
         }
     }
     Ok(())

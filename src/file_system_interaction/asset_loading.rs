@@ -38,6 +38,8 @@ pub(crate) fn loading_plugin(app: &mut App) {
 pub(crate) struct AudioAssets {
     #[asset(path = "audio/walking.ogg")]
     pub(crate) walking: Handle<AudioSource>,
+    #[asset(path = "audio/guns/rifle/ak47_single_shot_1.ogg")]
+    pub(crate) rifle_shot_1: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection, Resource, Clone)]

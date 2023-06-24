@@ -30,6 +30,7 @@ pub(crate) mod player_control;
 pub(crate) mod shader;
 pub(crate) mod util;
 pub(crate) mod world_interaction;
+pub(crate) mod spatial_audio;
 
 use crate::bevy_config::bevy_config_plugin;
 #[cfg(feature = "dev")]

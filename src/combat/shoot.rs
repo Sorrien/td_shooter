@@ -1,13 +1,16 @@
+use crate::file_system_interaction::asset_loading::AudioAssets;
 use crate::level_instantiation::spawning::objects::util::MeshAssetsExt;
 use crate::level_instantiation::spawning::objects::GameCollisionGroup;
 use crate::particles::{ParticleEffects, TimedParticle};
 use crate::player_control::{camera::IngameCamera, player_embodiment::Player};
 use crate::shader::Materials;
+use crate::spatial_audio::{AudioEmitterHandle, CustomAudioEmitter, DisposableAudioEmitter};
 use crate::GameState;
-use anyhow::{Context, Result};
-use bevy::ecs::query;
+use anyhow::Result;
+use bevy::render::render_resource::encase::rts_array::Length;
 use bevy::{prelude::*, reflect::TypeUuid};
 use bevy_hanabi::{ParticleEffect, ParticleEffectBundle};
+use bevy_kira_audio::{Audio, AudioControl, AudioInstance};
 use bevy_mod_sysfail::sysfail;
 use bevy_rapier3d::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -21,12 +24,17 @@ pub(crate) struct Shooting {
     pub(crate) requested: bool,
     pub(crate) shoot_delay_enabled: bool,
     pub(crate) shoot_delay_length: f32,
-    pub(crate) shoot_delay_time: f32
+    pub(crate) shoot_delay_time: f32,
 }
 
 impl Default for Shooting {
     fn default() -> Self {
-        Self { requested: false, shoot_delay_enabled: false, shoot_delay_length: 0.0, shoot_delay_time: 0.0 }
+        Self {
+            requested: false,
+            shoot_delay_enabled: false,
+            shoot_delay_length: 0.0,
+            shoot_delay_time: 0.0,
+        }
     }
 }
 
@@ -56,12 +64,16 @@ pub(crate) struct ShootingSystemSet;
 
 #[sysfail(log(level = "error"))]
 fn apply_shooting(
+    //mut player_query: Query<(&mut Shooting, &Transform, &mut CustomAudioEmitter), With<Player>>,
     mut player_query: Query<(&mut Shooting, &Transform), With<Player>>,
     camera_query: Query<(&IngameCamera, &Transform), Without<Player>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     materials: Res<Materials>,
     time: Res<Time>,
+    //mut audio_instances: ResMut<Assets<AudioInstance>>,
+    audio_assets: Res<AudioAssets>,
+    audio: Res<Audio>,
 ) -> Result<()> {
     #[cfg(feature = "tracing")]
     let _span = info_span!("handle_horizontal_movement").entered();
@@ -70,14 +82,13 @@ fn apply_shooting(
     };
     let dt = time.delta_seconds();
 
-    for (mut shooting, _player_transform) in &mut player_query {
-
+    //for (mut shooting, player_transform, mut emitter) in &mut player_query {
+    for (mut shooting, player_transform) in &mut player_query {
         if shooting.shoot_delay_enabled {
             if shooting.shoot_delay_time >= shooting.shoot_delay_length {
                 shooting.shoot_delay_enabled = false;
                 shooting.shoot_delay_time = 0.0;
-            }
-            else {
+            } else {
                 shooting.shoot_delay_time += dt;
             }
         }
@@ -94,6 +105,7 @@ fn apply_shooting(
 
             let is_physics_projectile = false;
 
+            //spawn projectile
             let _projectile = if is_physics_projectile {
                 commands
                     .spawn((
@@ -131,10 +143,43 @@ fn apply_shooting(
                     .id()
             };
 
+            //play firing audio
+
+            /*let rifle_shot_1_handle = audio
+                .play(audio_assets.rifle_shot_1.clone())
+                .with_volume(1.0)
+                .handle();
+            emitter.instances.push(rifle_shot_1_handle);
+
+            let instance_count = emitter.instances.length();
+            for i in 0..instance_count {
+                let instance_handle = &emitter.instances[i];
+                if let Some(audio_instance) = audio_instances.get_mut(instance_handle) {
+                    //error!("found audio instance");
+                } else {
+                    emitter.instances.remove(i);
+
+                    //error!("removing old instance handle");
+                    //emitter.instances.push(rifle_shot_1_handle);
+                }
+            }*/
+
+            let rifle_shot_1_handle = audio
+                .play(audio_assets.rifle_shot_1.clone())
+                .with_volume(0.6) //at least for now I'll relinquish realism along with the tinnitus
+                .handle();
+
+            commands.spawn((
+                TransformBundle::from_transform(projectile_transform),
+                AudioEmitterHandle {
+                    instance: Some(rifle_shot_1_handle),
+                },
+                DisposableAudioEmitter {},
+            ));
+
             shooting.requested = false;
             shooting.shoot_delay_enabled = true;
-        }
-        else if shooting.requested {
+        } else if shooting.requested {
             shooting.requested = false;
         }
     }
@@ -341,8 +386,8 @@ fn handle_tracing_projectile_movement(
                         TimedParticle {
                             destroy_on_completion: true,
                             length: 3.0,
-                            time_played: 0.0
-                        }
+                            time_played: 0.0,
+                        },
                     ));
                 };
 

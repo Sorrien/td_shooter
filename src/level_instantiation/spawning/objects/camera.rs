@@ -1,6 +1,7 @@
 use crate::level_instantiation::spawning::GameObject;
 use crate::player_control::actions::create_camera_action_input_manager_bundle;
 use crate::player_control::camera::IngameCamera;
+use crate::spatial_audio::CustomAudioReceiver;
 use bevy::prelude::*;
 use bevy_dolly::prelude::*;
 #[cfg(feature = "dev")]
@@ -25,5 +26,6 @@ pub(crate) fn spawn(In(transform): In<Transform>, mut commands: Commands) {
         GameObject::Camera,
         #[cfg(feature = "dev")]
         EditorCamera,
+        CustomAudioReceiver
     ));
 }

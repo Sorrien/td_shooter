@@ -12,6 +12,7 @@
 - Medieval Wall 01: CC0 1.0; https://polyhaven.com/a/medieval_wall_01
 - Roof 09: CC0 1.0; https://polyhaven.com/a/roof_09
 - House model: CC0 1.0; made by Jan Hohenheim https://github.com/janhohenheim/td_shooter
+- Firearm sounds: CC0 1.0; https://opengameart.org/content/the-free-firearm-sound-library
 
 ## Template
 

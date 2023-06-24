@@ -94,13 +94,13 @@ fn create_firework_effect(effects: &mut Assets<EffectAsset>) -> Handle<EffectAss
         }
         .init(InitPositionSphereModifier {
             center: Vec3::ZERO,
-            radius: 0.00001,
+            radius: 0.000001,
             dimension: ShapeDimension::Volume,
         })
         .init(InitVelocitySphereModifier {
             center: Vec3::ZERO,
             // Give a bit of variation by randomizing the initial speed
-            speed: Value::Uniform((15., 25.)),
+            speed: Value::Uniform((5., 10.)),
         })
         .init(InitLifetimeModifier {
             // Give a bit of variation by randomizing the lifetime per particle

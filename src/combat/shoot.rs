@@ -4,13 +4,12 @@ use crate::level_instantiation::spawning::objects::GameCollisionGroup;
 use crate::particles::{ParticleEffects, TimedParticle};
 use crate::player_control::{camera::IngameCamera, player_embodiment::Player};
 use crate::shader::Materials;
-use crate::spatial_audio::{AudioEmitterHandle, CustomAudioEmitter, DisposableAudioEmitter};
+use crate::spatial_audio::DisposableAudioEmitterBundle;
 use crate::GameState;
 use anyhow::Result;
-use bevy::render::render_resource::encase::rts_array::Length;
 use bevy::{prelude::*, reflect::TypeUuid};
 use bevy_hanabi::{ParticleEffect, ParticleEffectBundle};
-use bevy_kira_audio::{Audio, AudioControl, AudioInstance};
+use bevy_kira_audio::{Audio, AudioControl};
 use bevy_mod_sysfail::sysfail;
 use bevy_rapier3d::prelude::*;
 use rand::Rng;
@@ -179,12 +178,9 @@ fn apply_shooting(
                 .with_volume(0.6) //at least for now I'll relinquish realism along with the tinnitus
                 .handle();
 
-            commands.spawn((
+            commands.spawn(DisposableAudioEmitterBundle::new(
+                rifle_shot_1_handle,
                 TransformBundle::from_transform(projectile_transform),
-                AudioEmitterHandle {
-                    instance: Some(rifle_shot_1_handle),
-                },
-                DisposableAudioEmitter {},
             ));
 
             shooting.requested = false;

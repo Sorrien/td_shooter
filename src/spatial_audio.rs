@@ -1,9 +1,12 @@
 use bevy::asset::{Assets, Handle};
 use bevy::ecs::component::Component;
-use bevy::prelude::{Commands, Entity, GlobalTransform, Query, Res, ResMut, Resource, With};
+use bevy::prelude::{
+    Bundle, Commands, Entity, GlobalTransform, Query, Res, ResMut, Resource, With,
+};
+use bevy::transform::TransformBundle;
 use bevy_kira_audio::{Audio, AudioInstance, AudioSource, AudioTween};
 
-/// Component for audio emitters
+/* /// Component for audio emitters
 ///
 /// Add [`Handle<AudioInstance>`]s to control their pan and volume based on emitter
 /// and receiver positions.
@@ -13,6 +16,26 @@ pub struct CustomAudioEmitter {
     ///
     /// The same instance should only be on one emitter.
     pub instances: Vec<Handle<AudioInstance>>,
+} */
+
+#[derive(Bundle)]
+pub(crate) struct DisposableAudioEmitterBundle {
+    pub(crate) emitter_handle: AudioEmitterHandle,
+    pub(crate) disposable_emitter: DisposableAudioEmitter,
+    #[bundle]
+    pub(crate) tranform_bundle: TransformBundle,
+}
+
+impl DisposableAudioEmitterBundle {
+    pub(crate) fn new(instance: Handle<AudioInstance>, transform_bundle: TransformBundle) -> Self {
+        Self {
+            emitter_handle: AudioEmitterHandle {
+                instance: Some(instance),
+            },
+            disposable_emitter: DisposableAudioEmitter::default(),
+            tranform_bundle: transform_bundle,
+        }
+    }
 }
 
 /// Component for audio emitters
@@ -29,6 +52,31 @@ pub struct AudioEmitterHandle {
 
 #[derive(Component, Default)]
 pub struct DisposableAudioEmitter {}
+
+#[derive(Bundle)]
+pub(crate) struct LoopAudioEmitterBundle {
+    pub(crate) emitter_handle: AudioEmitterHandle,
+    pub(crate) loop_emitter: LoopAudioEmitter,
+}
+
+impl LoopAudioEmitterBundle {
+    pub(crate) fn new(
+        source_handle: Handle<AudioSource>,
+        setup_fn: fn(Handle<AudioSource>, &Res<Audio>) -> Handle<AudioInstance>,
+    ) -> Self {
+        Self {
+            emitter_handle: AudioEmitterHandle {
+                instance: None,
+            },
+            loop_emitter: LoopAudioEmitter {
+                source_handle,
+                setup_fn,
+                pending_emitter_commands: Vec::<EmitterPlayerCommand>::new(),
+                playback_state: None,
+            },
+        }
+    }
+}
 
 #[derive(Component)]
 pub struct LoopAudioEmitter {

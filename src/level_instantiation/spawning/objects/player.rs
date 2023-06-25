@@ -1,6 +1,6 @@
 use crate::combat::shoot::Shooting;
-use crate::file_system_interaction::asset_loading::{AnimationAssets, SceneAssets, AudioAssets};
-use crate::file_system_interaction::audio::{create_walking_audio_handle};
+use crate::file_system_interaction::asset_loading::{AnimationAssets, AudioAssets, SceneAssets};
+use crate::file_system_interaction::audio::create_walking_audio_handle;
 use crate::level_instantiation::spawning::objects::GameCollisionGroup;
 use crate::level_instantiation::spawning::GameObject;
 use crate::movement::general_movement::{CharacterAnimations, CharacterControllerBundle, Model};
@@ -8,9 +8,7 @@ use crate::player_control::actions::{
     create_player_action_input_manager_bundle, create_ui_action_input_manager_bundle,
 };
 use crate::player_control::player_embodiment::Player;
-use crate::spatial_audio::{
-    AudioEmitterHandle, CustomAudioEmitter, EmitterPlayerCommand, LoopAudioEmitter,
-};
+use crate::spatial_audio::LoopAudioEmitterBundle;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::TAU;
@@ -50,17 +48,7 @@ pub(crate) fn spawn(
                 shoot_delay_length: 0.1,
                 ..default()
             },
-/*             CustomAudioEmitter { //leaving this in for now to leave rifle shots as they are.
-                //instances: vec![audio.rifle_shot_1.clone()],
-                instances: vec![],
-            }, */
-            AudioEmitterHandle { instance: None },
-            LoopAudioEmitter {
-                source_handle: audio_assets.walking.clone(),
-                setup_fn: create_walking_audio_handle,
-                pending_emitter_commands: Vec::<EmitterPlayerCommand>::new(),
-                playback_state: None,
-            },
+            LoopAudioEmitterBundle::new(audio_assets.walking.clone(), create_walking_audio_handle),
             GameObject::Player,
         ))
         .id();

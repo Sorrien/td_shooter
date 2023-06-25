@@ -11,6 +11,8 @@ pub(crate) fn spawn_ui_camera(mut commands: Commands) {
 
 pub(crate) fn despawn_ui_camera(mut commands: Commands, query: Query<Entity, With<UiCamera>>) {
     for entity in &query {
-        commands.entity(entity).despawn_recursive();
+        if let Some(entity_commands) = commands.get_entity(entity) {
+            entity_commands.despawn_recursive();
+        }
     }
 }

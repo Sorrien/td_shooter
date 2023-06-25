@@ -25,7 +25,9 @@ pub(crate) fn despawn_removed(
     let _span = info_span!("despawn_removed").entered();
     for (entity, name) in added_name.iter_mut() {
         if name.to_lowercase().contains("[remove]") {
-            commands.entity(entity).insert(Despawn { recursive: true });
+            if let Some(mut entity_commands) = commands.get_entity(entity) {
+                entity_commands.insert(Despawn { recursive: true });
+            }
         }
     }
 }
@@ -104,7 +106,9 @@ pub(crate) fn set_shadows(
             .context("Failed to get name of parent of added mesh")?;
 
         if !name.contains("[shadow]") {
-            commands.entity(entity).insert(NotShadowCaster);
+            if let Some(mut entity_commands) = commands.get_entity(entity) {
+                entity_commands.insert(NotShadowCaster);
+            }
         }
     }
     Ok(())

@@ -74,7 +74,9 @@ fn handle_timed_particles(
             if let Some(spawner) = particle_effect.maybe_spawner() {
                 spawner.set_active(false);
                 if timed_particle.destroy_on_completion {
-                    commands.entity(entity).despawn();
+                    if let Some(mut entity_commands) = commands.get_entity(entity) {
+                        entity_commands.despawn();
+                    }
                 }
             }
         }

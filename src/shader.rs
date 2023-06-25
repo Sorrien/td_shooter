@@ -158,10 +158,11 @@ pub(crate) fn set_texture_to_repeat(
                         })
                     });
 
-                    commands
-                        .entity(*child)
-                        .remove::<Handle<StandardMaterial>>()
-                        .insert(repeated_material.clone());
+                    if let Some(mut entity_commands) = commands.get_entity(*child) {
+                        entity_commands
+                            .remove::<Handle<StandardMaterial>>()
+                            .insert(repeated_material.clone());
+                    }
                 }
             }
         }

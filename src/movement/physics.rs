@@ -39,9 +39,9 @@ pub(crate) fn read_colliders(
                     Collider::from_bevy_mesh(collider_mesh, &ComputedColliderShape::TriMesh)
                         .context("Failed to create collider from mesh")?;
 
-                commands
-                    .entity(collider_entity)
-                    .insert((rapier_collider, NavMeshAffector));
+                if let Some(mut entity_commands) = commands.get_entity(collider_entity) {
+                    entity_commands.insert((rapier_collider, NavMeshAffector));
+                }
             }
         }
     }

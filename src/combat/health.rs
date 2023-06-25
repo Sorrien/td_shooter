@@ -15,9 +15,8 @@ use bevy_rapier3d::prelude::*;
 use serde::{Deserialize, Serialize};
 
 pub(crate) fn health_plugin(app: &mut App) {
-    app.register_type::<Health>()
-        .add_system(apply_death);//.in_set(HealthSystemSet)
-        //.in_set(OnUpdate(GameState::Playing));
+    app.register_type::<Health>().add_system(apply_death); //.in_set(HealthSystemSet)
+                                                           //.in_set(OnUpdate(GameState::Playing));
 }
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
@@ -42,7 +41,9 @@ impl Default for Health {
 fn apply_death(query_health: Query<(Entity, &Health)>, mut commands: Commands) {
     for (entity, health) in &query_health {
         if health.hit_points <= 0.0 {
-            commands.entity(entity).despawn();
+            if let Some(mut entity_commands) = commands.get_entity(entity) {
+                entity_commands.despawn();
+            }
         }
     }
 }

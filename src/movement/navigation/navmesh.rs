@@ -25,11 +25,14 @@ pub(crate) fn read_navmesh(
                 let path_mesh = PathMesh::from_bevy_mesh_and_then(&mesh, |mesh| {
                     mesh.set_delta(5.);
                 });
-                commands.entity(parent).insert((
-                    path_meshes.add(path_mesh),
-                    #[cfg(feature = "dev")]
-                    NavMesh,
-                ));
+                
+                if let Some(entity_commands) = commands.get_entity(parent) {
+                    entity_commands.insert((
+                        path_meshes.add(path_mesh),
+                        #[cfg(feature = "dev")]
+                        NavMesh,
+                    ));
+                }
             }
         }
     }

@@ -65,9 +65,7 @@ impl LoopAudioEmitterBundle {
         setup_fn: fn(Handle<AudioSource>, &Res<Audio>) -> Handle<AudioInstance>,
     ) -> Self {
         Self {
-            emitter_handle: AudioEmitterHandle {
-                instance: None,
-            },
+            emitter_handle: AudioEmitterHandle { instance: None },
             loop_emitter: LoopAudioEmitter {
                 source_handle,
                 setup_fn,
@@ -311,7 +309,9 @@ pub(crate) fn cleanup_spatial_audio(
         }
 
         if should_despawn {
-            commands.entity(entity).despawn();
+            if let Some(mut entity_commands) = commands.get_entity(entity) {
+                entity_commands.despawn();
+            }
         }
     }
 }

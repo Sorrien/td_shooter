@@ -31,9 +31,10 @@ pub(crate) fn link_animations(
             } else {
                 top_entity
             };
-            commands
-                .entity(link_target)
-                .insert(AnimationEntityLink(entity));
+
+            if let Some(mut entity_commands) = commands.get_entity(link_target) {
+                entity_commands.insert(AnimationEntityLink(entity));
+            }
         }
     }
 }

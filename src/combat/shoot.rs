@@ -214,7 +214,10 @@ fn apply_projectile_impact(
         if ongoing {
         } else {
         }
-        commands.entity(projectile_entity).despawn();
+
+        if let Some(mut projectile_entity_commands) = commands.get_entity(projectile_entity) {
+            projectile_entity_commands.despawn();
+        }
     }
 }
 
@@ -389,7 +392,9 @@ fn handle_tracing_projectile_movement(
             }
 
             projectile.velocity = Vec3::ZERO;
-            commands.entity(projectile_entity).despawn();
+            if let Some(mut projectile_entity_commands) = commands.get_entity(projectile_entity) {
+                projectile_entity_commands.despawn();
+            }
         } else {
             transform.translation = ray_end;
         }

@@ -249,7 +249,9 @@ fn sync_models(
             *model_transform = model_transform.lerp(*target_transform, factor);
             *visibility = *target_visibility;
         } else {
-            commands.entity(model_entity).despawn_recursive();
+            if let Some(entity_commands) = commands.get_entity(model_entity) {
+                entity_commands.despawn_recursive();
+            }
         }
     }
     Ok(())

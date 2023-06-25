@@ -10,10 +10,14 @@ pub(crate) struct Despawn {
 pub(crate) fn despawn(mut commands: Commands, despawn_query: Query<(Entity, &Despawn, &Children)>) {
     for (entity, despawn, children) in despawn_query.iter() {
         if despawn.recursive {
-            commands.entity(entity).despawn_recursive();
+            if let Some(entity_commands) = commands.get_entity(entity) {
+                entity_commands.despawn_recursive();
+            }
         } else {
             for child in children.iter() {
-                commands.entity(*child).remove_parent();
+                if let Some(mut entity_commands) = commands.get_entity(*child) {
+                    entity_commands.remove_parent();
+                }
             }
         }
     }

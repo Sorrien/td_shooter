@@ -105,6 +105,8 @@ fn apply_shooting(
 
             let is_physics_projectile = false;
 
+            let velocity = forward.normalize() * projectile_starting_vel;
+
             //spawn projectile
             let _projectile = if is_physics_projectile {
                 commands
@@ -116,7 +118,7 @@ fn apply_shooting(
                             ..default()
                         },
                         Name::new("Projectile"),
-                        PhysicsProjectileBundle::ball(0.1, forward * projectile_starting_vel),
+                        PhysicsProjectileBundle::ball(0.1, velocity),
                         ActiveEvents::COLLISION_EVENTS,
                         ActiveCollisionTypes::DYNAMIC_DYNAMIC,
                         CollisionGroups::new(
@@ -136,9 +138,7 @@ fn apply_shooting(
                             ..default()
                         },
                         Name::new("Projectile"),
-                        TracingProjectile {
-                            velocity: forward * projectile_starting_vel,
-                        },
+                        TracingProjectile { velocity },
                     ))
                     .id()
             };
@@ -210,6 +210,7 @@ fn apply_projectile_impact(
             Some((projectile, target)) => (projectile, target),
             None => continue,
         };
+
         if ongoing {
         } else {
         }
@@ -328,7 +329,7 @@ pub(crate) struct TracingProjectileBundle {
 #[derive(Debug, Clone, PartialEq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component, Serialize, Deserialize)]
 pub(crate) struct TracingProjectile {
-    velocity: Vec3,
+    pub(crate) velocity: Vec3,
 }
 
 impl Default for TracingProjectile {
@@ -348,64 +349,49 @@ fn handle_tracing_projectile_movement(
     mut commands: Commands,
     particle_effects: Res<ParticleEffects>,
 ) {
-    //error!("starting projectile system");
     for (projectile_entity, mut projectile, mut transform) in tracing_projectiles.iter_mut() {
-        //error!("processing projectile {:?}", projectile_entity);
-        if projectile.velocity.cmpgt(Vec3::ZERO).any() {
-            //error!("projectile {:?} has velocity greater than 0", projectile_entity);
-            let dt = time.delta_seconds();
-            let ray_start = transform.translation;
-            let travel_distance = projectile.velocity * dt;
-            let gravity = Vec3::Y * -1.0; //ideally we'd pull the gravity from rapier
-            let ray_end = ray_start + travel_distance + (gravity * dt); //things are dropping too quickly at the moment.
+        let dt = time.delta_seconds();
+        let ray_start = transform.translation;
+        let travel_distance = projectile.velocity * dt;
+        let gravity = Vec3::Y * -1.0; //ideally we'd pull the gravity from rapier
+        let ray_end = ray_start + travel_distance + (gravity * dt); //things are dropping too quickly at the moment.
 
-            let mut filter = QueryFilter::new();
-            filter.flags |= QueryFilterFlags::EXCLUDE_SENSORS;
+        let mut filter = QueryFilter::new();
+        filter.flags |= QueryFilterFlags::EXCLUDE_SENSORS;
 
-            let max_toi = ray_end.length();
-            let ray_direction = ray_end - ray_start;
-            /*             error!(
-                "entity: {:?} ray dir: {:?} max_toi: {:?}",
-                projectile_entity, ray_direction, max_toi
-            ); */
-            //let hit = rapier_context.cast_ray(ray_start, ray_direction, max_toi, true, filter);
+        let max_toi = ray_end.length();
+        let ray_direction = ray_end - ray_start;
 
-            let hit = rapier_context.cast_ray_and_get_normal(
-                ray_start,
-                ray_direction,
-                max_toi,
-                true,
-                filter,
-            );
-            if let Some((entity, ray_intersection)) = hit {
-                //let entity_name = query_name.get(entity).unwrap();
-                //error!("hit entity: {:?} {:?}", entity, entity_name);
-                transform.translation = ray_intersection.point;
-                if let Some(firework) = particle_effects.firework.clone() {
-                    commands.spawn((
-                        Name::new("Firework particle"),
-                        ParticleEffectBundle {
-                            effect: ParticleEffect::new(firework),
-                            transform: transform.clone(),
-                            ..default()
-                        },
-                        TimedParticle {
-                            destroy_on_completion: true,
-                            length: 3.0,
-                            time_played: 0.0,
-                        },
-                    ));
-                };
+        let hit =
+            rapier_context.cast_ray_and_get_normal(ray_start, ray_direction, max_toi, true, filter);
+        if let Some((entity, ray_intersection)) = hit {
+            //let entity_name = query_name.get(entity).unwrap();
+            //error!("hit entity: {:?} {:?}", entity, entity_name);
+            transform.translation = ray_intersection.point;
+            if let Some(firework) = particle_effects.firework.clone() {
+                commands.spawn((
+                    Name::new("Firework particle"),
+                    ParticleEffectBundle {
+                        effect: ParticleEffect::new(firework),
+                        transform: transform.clone(),
+                        ..default()
+                    },
+                    TimedParticle {
+                        destroy_on_completion: true,
+                        length: 3.0,
+                        time_played: 0.0,
+                    },
+                ));
+            };
 
-                if let Ok(mut health) = query_health.get_mut(entity) {
-                    health.hit_points = 0.0; //all projectiles are instant kill for now
-                }
-
-                projectile.velocity = Vec3::ZERO;
-                commands.entity(projectile_entity).despawn();
-            } else {
-                transform.translation = ray_end;
+            if let Ok(mut health) = query_health.get_mut(entity) {
+                health.hit_points = 0.0; //all projectiles are instant kill for now
             }
+
+            projectile.velocity = Vec3::ZERO;
+            commands.entity(projectile_entity).despawn();
+        } else {
+            transform.translation = ray_end;
         }
     }
 }

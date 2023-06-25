@@ -29,7 +29,7 @@ pub(crate) struct IngameCamera {
 impl Default for IngameCamera {
     fn default() -> Self {
         Self {
-            desired_distance: 5.,
+            desired_distance: 0.,
             target: default(),
             secondary_target: default(),
             kind: default(),
@@ -40,8 +40,8 @@ impl Default for IngameCamera {
 #[derive(Debug, Clone, PartialEq, Reflect, FromReflect, Serialize, Deserialize, Default)]
 #[reflect(Serialize, Deserialize)]
 pub(crate) enum IngameCameraKind {
-    #[default]
     ThirdPerson,
+    #[default]
     FirstPerson,
     FixedAngle,
 }

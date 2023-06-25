@@ -40,6 +40,14 @@ pub(crate) struct AudioAssets {
     pub(crate) walking: Handle<AudioSource>,
     #[asset(path = "audio/guns/rifle/ak47_single_shot_1.ogg")]
     pub(crate) rifle_shot_1: Handle<AudioSource>,
+    #[asset(path = "audio/guns/rifle/ak47_single_shot_2.ogg")]
+    pub(crate) rifle_shot_2: Handle<AudioSource>,
+    #[asset(path = "audio/guns/rifle/ak47_single_shot_3.ogg")]
+    pub(crate) rifle_shot_3: Handle<AudioSource>,
+    #[asset(path = "audio/guns/rifle/ak47_single_shot_4.ogg")]
+    pub(crate) rifle_shot_4: Handle<AudioSource>,
+    #[asset(path = "audio/guns/rifle/ak47_single_shot_5.ogg")]
+    pub(crate) rifle_shot_5: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection, Resource, Clone)]

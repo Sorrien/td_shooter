@@ -13,6 +13,7 @@ use bevy_hanabi::{ParticleEffect, ParticleEffectBundle};
 use bevy_kira_audio::{Audio, AudioControl, AudioInstance};
 use bevy_mod_sysfail::sysfail;
 use bevy_rapier3d::prelude::*;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use super::health::Health;
@@ -164,8 +165,17 @@ fn apply_shooting(
                 }
             }*/
 
+            //pick one of the shot sounds at random to provide some variety
+            let rand_shot_index = rand::thread_rng().gen_range(0..4);
+            let rifle_shot_handle = match rand_shot_index {
+                1 => &audio_assets.rifle_shot_2,
+                2 => &audio_assets.rifle_shot_4,
+                3 => &audio_assets.rifle_shot_5,
+                _ => &audio_assets.rifle_shot_1,
+            };
+
             let rifle_shot_1_handle = audio
-                .play(audio_assets.rifle_shot_1.clone())
+                .play(rifle_shot_handle.clone())
                 .with_volume(0.6) //at least for now I'll relinquish realism along with the tinnitus
                 .handle();
 

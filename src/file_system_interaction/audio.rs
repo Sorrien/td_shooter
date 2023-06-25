@@ -1,7 +1,8 @@
 use crate::spatial_audio::{cleanup_spatial_audio, SpatialAudio, handle_emitter_audio_commands};
 use crate::GameState;
 use crate::{
-    file_system_interaction::asset_loading::AudioAssets, spatial_audio::run_spatial_audio,
+    //file_system_interaction::asset_loading::AudioAssets, 
+    spatial_audio::run_spatial_audio,
 };
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::{Audio, *};
@@ -38,10 +39,10 @@ pub(crate) struct AudioHandles {
 } */
 
 fn init_audio(
-    mut commands: Commands,
+    /*mut commands: Commands,
     audio_assets: Res<AudioAssets>,
     audio: Res<Audio>,
-    mut audio_instances: ResMut<Assets<AudioInstance>>,
+    mut audio_instances: ResMut<Assets<AudioInstance>>,*/
 ) {
     //audio.pause(); //I'm pretty sure this is what has been breaking the audio and making it behave so strangely.
 /*     let walking_handle = audio
